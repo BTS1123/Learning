@@ -1,0 +1,37 @@
+# main.py
+# 函数导入
+import os
+from stl_utils import load_stl, save_stl
+from geometry import compute_long_axis, find_max_section, split_model
+from visualization import plot_optimized_tooth_image
+from config import INPUT_PATH, UPPER_OUTPUT_PATH, LOWER_OUTPUT_PATH, PICT_OUTPUT_PATH
+
+# 主程序
+if __name__ == "__main__":
+    # 创建输出目录
+    os.makedirs(UPPER_OUTPUT_PATH, exist_ok=True)
+    os.makedirs(LOWER_OUTPUT_PATH, exist_ok=True)
+    os.makedirs(PICT_OUTPUT_PATH, exist_ok=True)  # 确保图像文件夹存在
+
+    # 加载模型
+    model = load_stl(INPUT_PATH)
+
+    # 计算牙齿的中心和纵向长轴
+    center, long_axis = compute_long_axis(model)
+    print(f"Center of the tooth: {center}")
+    print(f"Long axis of the tooth: {long_axis}")
+
+    # 找到最大截面
+    max_section_points, max_plane_point = find_max_section(model, center, long_axis)
+    print(f"Found maximum section with {len(max_section_points)} points.")
+
+    # 切割模型
+    above, below = split_model(model, max_plane_point, long_axis)
+
+    # 保存切割后的部分
+    save_stl(above, os.path.join(UPPER_OUTPUT_PATH, "upper_teeth.stl"))
+    save_stl(below, os.path.join(LOWER_OUTPUT_PATH, "lower_teeth.stl"))
+
+    # 绘制并保存牙齿图像
+    plot_optimized_tooth_image(model, PICT_OUTPUT_PATH)
+    print("Model processing complete.")
