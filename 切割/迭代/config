@@ -1,0 +1,33 @@
+# config.py
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 输入和输出的基础路径
+INPUT_BASE_DIR = os.path.join(BASE_DIR, "C:\\Users\\Lenovo\\Desktop\\input\\左下第一磨牙\\40-50")
+OUTPUT_DIR = os.path.join(BASE_DIR, "C:\\Users\\Lenovo\\Desktop\\output")
+
+# 定义数据范围
+START_NUM = 350
+END_NUM = 359
+
+# 存储输入和输出路径的列表
+input_paths = []
+upper_output_paths = []
+lower_output_paths = []
+pict_output_paths = []
+
+# 生成输入和输出路径
+for num in range(START_NUM, END_NUM + 1):
+    # 输入路径
+    input_path = os.path.join(INPUT_BASE_DIR, f"{num}.stl")
+    input_paths.append(input_path)
+
+    # 输出路径
+    upper_output_path = os.path.join(OUTPUT_DIR, "upper", f"{num}")
+    lower_output_path = os.path.join(OUTPUT_DIR, "below", f"{num}")
+    pict_output_path = os.path.join(OUTPUT_DIR, "pict", f"{num}")
+
+    upper_output_paths.append(upper_output_path)
+    lower_output_paths.append(lower_output_path)
+    pict_output_paths.append(pict_output_path)
