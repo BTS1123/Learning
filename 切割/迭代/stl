@@ -1,0 +1,16 @@
+# stl_utils.py
+import numpy as np
+from stl import mesh
+
+# 读取 STL 文件
+def load_stl(file_path):
+    model = mesh.Mesh.from_file(file_path)
+    return model
+
+# 保存为 STL 文件
+def save_stl(vertices, file_name):
+    from stl import mesh
+    new_mesh = mesh.Mesh(np.zeros(vertices.shape[0], dtype=mesh.Mesh.dtype))
+    for i, triangle in enumerate(vertices):
+        new_mesh.vectors[i] = triangle
+    new_mesh.save(file_name)
