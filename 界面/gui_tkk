@@ -1,8 +1,12 @@
+#1.热力图显示时没有在幕布处，而是占据了整个界面导致控制界面被挤压，只有将界面最大化才能看见右侧的菜单栏
+#啊啊啊啊第一个问题解决了嘻嘻
+#2.进度条太粗糙了，可以细化一下。单个处理的只会显示33%，而批量处理一个文件完成一个进度显示倒也还算是可以
 import os
 import sys
 import time
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
+import tkinter as tk
 from tkinter import filedialog, messagebox
 import batch_process
 import matplotlib.pyplot as plt
@@ -56,7 +60,7 @@ class STLProcessingApp:
 
         # 添加标注
         self.label_default_mode = ttk.Label(
-            self.control_frame, text="系统默认单一处理",
+            self.control_frame, text="系统默认单独处理",
             style="secondary.TLabel"
         )
         self.label_default_mode.pack(pady=5, fill=ttk.X, padx=10)
@@ -84,11 +88,14 @@ class STLProcessingApp:
         self.btn_view_stl.pack(pady=10, fill=ttk.X, padx=10)
 
     def create_widgets(self):
+        self.root.columnconfigure(0, weight=1)  # 配置列权重
+        self.root.rowconfigure(0, weight=1)  # 配置行权重
+
         self.canvas_frame = ttk.Frame(self.root, width=800, height=800)
-        self.canvas_frame.pack(side=ttk.LEFT, fill=ttk.BOTH, expand=True)
+        self.canvas_frame.grid(row=0, column=0, sticky="nsew")  # 使用 grid 布局
 
         self.control_frame = ttk.Frame(self.root, width=280, bootstyle="light")
-        self.control_frame.pack(side=ttk.RIGHT, fill=ttk.Y)
+        self.control_frame.grid(row=0, column=1, sticky="ns")  # 使用 grid 布局
 
         self.update_buttons()
 
@@ -129,6 +136,7 @@ class STLProcessingApp:
             return
 
         try:
+            # 清除 canvas_frame 中的所有部件
             for widget in self.canvas_frame.winfo_children():
                 widget.destroy()
 
@@ -139,7 +147,9 @@ class STLProcessingApp:
 
             canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
             canvas.draw()
-            canvas.get_tk_widget().pack(fill=ttk.BOTH, expand=True)
+            # 将画布添加到 canvas_frame 中，并且不影响右侧的 control_frame
+            canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")  # 使用 grid 布局
+
         except Exception as e:
             messagebox.showerror("错误", f"无法打开投影图: {str(e)}")
 
@@ -165,20 +175,37 @@ class STLProcessingApp:
             progress_bar["value"] = 0
             self.root.update_idletasks()
 
-            for progress in range(1, 100, 2):
-                time.sleep(0.5)
-                progress_bar["value"] = progress
-                progress_label.config(text=f"进度: {progress}%")
-                self.root.update_idletasks()
+            def process_single_file():
+                try:
+                    # 假设 process_single_stl 函数的处理过程可以拆分为 3 个步骤
+                    total_steps = 3
+                    for step in range(total_steps):
+                        if step == 0:
+                            # 第一步：加载 STL 文件
+                            load_stl(self.selected_file)
+                        elif step == 1:
+                            # 第二步：处理 STL 文件
+                            batch_process.process_single_stl(self.selected_file, self.stl_save_directory_single, self.heatmap_save_directory_single)
+                        else:
+                            # 第三步：保存处理结果
+                            pass
+                        progress = int((step + 1) / total_steps * 100)
+                        progress_bar["value"] = progress
+                        progress_label.config(text=f"处理进度: {progress}%")
+                        self.root.update_idletasks()
 
-            batch_process.process_single_stl(self.selected_file, self.stl_save_directory_single, self.heatmap_save_directory_single)
+                    progress_bar["value"] = 100
+                    progress_label.config(text="处理完成！")
+                    self.root.update_idletasks()
+                    messagebox.showinfo("完成", "单个文件处理完成！")
+                except Exception as e:
+                    messagebox.showerror("错误", f"处理文件时出错: {str(e)}")
+                finally:
+                    progress_window.destroy()
 
-            progress_bar["value"] = 100
-            progress_label.config(text="处理完成！")
-            self.root.update_idletasks()
-
-            messagebox.showinfo("完成", "单个文件处理完成！")
-            progress_window.destroy()
+            # 使用线程来处理文件，避免界面卡顿
+            import threading
+            threading.Thread(target=process_single_file).start()
 
         else:
             if not self.selected_folder:
@@ -207,23 +234,28 @@ class STLProcessingApp:
             progress_bar["value"] = 0
             self.root.update_idletasks()
 
-            for idx, file_name in enumerate(stl_files):
-                file_path = os.path.join(self.selected_folder, file_name)
+            def process_batch_files():
+                try:
+                    for idx, file_name in enumerate(stl_files):
+                        file_path = os.path.join(self.selected_folder, file_name)
+                        batch_process.process_single_stl(file_path, self.stl_save_directory_batch, self.heatmap_save_directory_batch)
+                        progress = int((idx + 1) / total_files * 100)
+                        progress_bar["value"] = progress
+                        progress_label.config(text=f"处理进度: {progress}%")
+                        self.root.update_idletasks()
 
-                batch_process.process_single_stl(file_path, self.stl_save_directory_batch, self.heatmap_save_directory_batch)
-
-                for progress in range(int((idx / total_files) * 100), int(((idx + 1) / total_files) * 100), 20):
-                    time.sleep(0.3)
-                    progress_bar["value"] = progress
-                    progress_label.config(text=f"进度: {progress}%")
+                    progress_bar["value"] = 100
+                    progress_label.config(text="处理完成！")
                     self.root.update_idletasks()
+                    messagebox.showinfo("完成", "批量处理已完成！")
+                except Exception as e:
+                    messagebox.showerror("错误", f"处理文件时出错: {str(e)}")
+                finally:
+                    progress_window.destroy()
 
-            progress_bar["value"] = 100
-            progress_label.config(text="处理完成！")
-            self.root.update_idletasks()
-
-            messagebox.showinfo("完成", "批量处理已完成！")
-            progress_window.destroy()
+            # 使用线程来处理文件，避免界面卡顿
+            import threading
+            threading.Thread(target=process_batch_files).start()
 
     def batch_process(self):
         folder = filedialog.askdirectory(title="选择包含 STL 文件的文件夹")
