@@ -1,4 +1,5 @@
-#看看还有没有哪方面可以优化的
+#当界面最大化时图像居中，小化一点就不行了woc
+#很神奇的一件事，一按界面就居中了，真的很神奇
 import os
 import sys
 import time
@@ -141,14 +142,71 @@ class STLProcessingApp:
                 messagebox.showinfo("保存路径", f"批量处理的热力图存储路径: {folder}")
 
     #热力图影像呈现
+    # def open_heatmap(self):
+    #     heatmap_file = filedialog.askopenfilename(filetypes=[("PNG Files", "*.png")])
+    #     if not heatmap_file:
+    #         messagebox.showwarning("警告", "请先选择投影图文件！")
+    #         return
+    #
+    #     try:
+    #         # 清除 canvas_frame 中的所有部件
+    #         for widget in self.canvas_frame.winfo_children():
+    #             widget.destroy()
+    #
+    #         fig, ax = plt.subplots(figsize=(6, 6))
+    #         img = plt.imread(heatmap_file)
+    #         ax.imshow(img)
+    #         ax.axis('off')
+    #
+    #         canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
+    #         canvas.draw()
+    #         # 使用 grid 布局管理器
+    #         canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")
+    #
+    #         # 配置 canvas_frame 的行和列权重，确保画布可以随父容器大小改变而调整
+    #         self.canvas_frame.rowconfigure(0, weight=1)
+    #         self.canvas_frame.columnconfigure(0, weight=1)
+    #
+    #     except Exception as e:
+    #         messagebox.showerror("错误", f"无法打开投影图: {str(e)}")
+
+    # def open_heatmap(self):
+    #     heatmap_file = filedialog.askopenfilename(filetypes=[("PNG Files", "*.png")])
+    #     if not heatmap_file:
+    #         messagebox.showwarning("警告", "请先选择投影图文件！")
+    #         return
+    #
+    #     try:
+    #         # 清除 canvas_frame 中的所有部件
+    #         for widget in self.canvas_frame.winfo_children():
+    #             widget.destroy()
+    #
+    #         fig, ax = plt.subplots(figsize=(6, 6))
+    #         img = plt.imread(heatmap_file)
+    #         ax.imshow(img)
+    #         ax.axis('off')
+    #
+    #         canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
+    #         canvas.draw()
+    #         canvas.get_tk_widget().pack(expand=True, fill=tk.BOTH)
+    #
+    #         # 绑定窗口大小变化事件
+    #         self.root.bind("<Configure>", lambda event: self.on_window_resize(canvas))
+    #
+    #     except Exception as e:
+    #         messagebox.showerror("错误", f"无法打开投影图: {str(e)}")
+    #
+    # def on_window_resize(self, canvas):
+    #     # 重新绘制画布
+    #     canvas.draw()
     def open_heatmap(self):
+        """打开并显示热力图"""
         heatmap_file = filedialog.askopenfilename(filetypes=[("PNG Files", "*.png")])
         if not heatmap_file:
             messagebox.showwarning("警告", "请先选择投影图文件！")
             return
 
         try:
-            # 清除 canvas_frame 中的所有部件
             for widget in self.canvas_frame.winfo_children():
                 widget.destroy()
 
@@ -159,8 +217,7 @@ class STLProcessingApp:
 
             canvas = FigureCanvasTkAgg(fig, master=self.canvas_frame)
             canvas.draw()
-            canvas.get_tk_widget().grid(row=0, column=0, sticky="nsew")  # 使用 grid 布局
-
+            canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         except Exception as e:
             messagebox.showerror("错误", f"无法打开投影图: {str(e)}")
 
